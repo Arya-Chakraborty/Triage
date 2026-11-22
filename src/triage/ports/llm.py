@@ -13,6 +13,7 @@ class LLMError(Exception):
 class FunctionCall:
     name: str
     args: dict[str, Any]
+    thought_signature: Any = None
 
 
 @dataclass

@@ -50,7 +50,13 @@ class GeminiLLM(LLMClient):
             fc = getattr(part, "function_call", None)
             if fc and getattr(fc, "name", None):
                 args = dict(fc.args) if getattr(fc, "args", None) else {}
-                calls.append(FunctionCall(name=fc.name, args=args))
+                calls.append(
+                    FunctionCall(
+                        name=fc.name,
+                        args=args,
+                        thought_signature=getattr(part, "thought_signature", None),
+                    )
+                )
             elif getattr(part, "text", None):
                 text += part.text
         usage = getattr(response, "usage_metadata", None)
@@ -119,10 +125,15 @@ def _contents(contents: list[dict[str, Any]]) -> list[Any]:
     for item in contents:
         role = item.get("role") or "user"
         if item.get("calls"):
-            parts = [
-                types.Part.from_function_call(name=c["name"], args=c.get("args") or {})
-                for c in item["calls"]
-            ]
+            parts = []
+            for c in item["calls"]:
+                part = types.Part.from_function_call(
+                    name=c["name"], args=c.get("args") or {}
+                )
+                sig = c.get("thought_signature")
+                if sig is not None:
+                    part.thought_signature = sig
+                parts.append(part)
             converted.append(types.Content(role="model", parts=parts))
             continue
         if item.get("tool"):

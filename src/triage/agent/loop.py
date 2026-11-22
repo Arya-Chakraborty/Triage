@@ -122,7 +122,11 @@ class AgentLoop:
                     {
                         "role": "model",
                         "calls": [
-                            {"name": c.name, "args": c.args}
+                            {
+                                "name": c.name,
+                                "args": c.args,
+                                "thought_signature": c.thought_signature,
+                            }
                             for c in response.function_calls
                         ],
                     }
