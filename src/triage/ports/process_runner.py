@@ -15,3 +15,7 @@ class ProcessRunner(ABC):
     @abstractmethod
     def terminate(self, pid: int) -> None:
         """Best-effort terminate. Missing pid is not an error."""
+
+    @abstractmethod
+    def terminate_all(self) -> None:
+        """Terminate every pid this runner spawned. Missing pids are not an error."""

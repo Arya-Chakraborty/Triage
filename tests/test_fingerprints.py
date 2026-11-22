@@ -90,6 +90,8 @@ def test_same_fingerprint_appends_while_open():
     )
     event = _event(fingerprint=fp)
     assert attach_or_open(existing, event) == "append"
+    existing.status = "needs_human"
+    assert attach_or_open(existing, event) == "append"
     existing.status = "resolved"
     assert attach_or_open(existing, event) == "open"
     assert attach_or_open(None, event) == "open"

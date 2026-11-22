@@ -157,10 +157,7 @@ async function loadLive(route) {
     jobs.push(wrap("telemetry", () => api.telemetry(), (telemetry) => store.patch({ telemetry })));
   }
 
-  const results = await Promise.all(jobs);
-  if (results.some((ok) => ok === false) && !store.get().overview) {
-    applyFixtures();
-  }
+  await Promise.all(jobs);
 }
 
 async function wrap(key, fn, apply) {

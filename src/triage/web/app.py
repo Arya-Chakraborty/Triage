@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from contextlib import asynccontextmanager
 from datetime import timedelta
 from pathlib import Path
 from typing import Any
@@ -27,7 +28,16 @@ def create_app(
     state: AppState,
     clock,
 ) -> FastAPI:
-    app = FastAPI(title="Triage", docs_url=None, redoc_url=None)
+    @asynccontextmanager
+    async def lifespan(app: FastAPI):
+        app.state.store = store
+        app.state.bus = bus
+        app.state.ingest = ingest
+        app.state.state = state
+        app.state.clock = clock
+        yield
+
+    app = FastAPI(title="Triage", docs_url=None, redoc_url=None, lifespan=lifespan)
     app.include_router(ingest_router(ingest, token))
 
     @app.get("/api/health")

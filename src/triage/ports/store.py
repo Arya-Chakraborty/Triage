@@ -68,7 +68,7 @@ class Store(ABC):
 
     @abstractmethod
     def get_open_by_fingerprint(self, fingerprint: str) -> Incident | None:
-        """Open or fixing incident for this fingerprint, or None."""
+        """Open, fixing, or needs_human incident for this fingerprint, or None."""
 
     @abstractmethod
     def last_resolved_by_fingerprint(self, fingerprint: str) -> Incident | None: ...

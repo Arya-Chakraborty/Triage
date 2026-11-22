@@ -7,7 +7,7 @@ from typing import Literal
 
 from triage.domain.entities import Event, Incident
 
-OPEN_STATUSES = ("open", "fixing")
+OPEN_STATUSES = ("open", "fixing", "needs_human")
 SEVERITY_RANK = {"low": 0, "medium": 1, "high": 2, "critical": 3}
 GateAction = Literal["ignore", "append", "open", "needs_human"]
 

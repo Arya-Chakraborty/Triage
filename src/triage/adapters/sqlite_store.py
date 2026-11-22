@@ -288,7 +288,7 @@ class SqliteStore(Store):
     def get_open_by_fingerprint(self, fingerprint: str) -> Incident | None:
         with self._lock:
             row = self._conn.execute(
-                "SELECT * FROM incidents WHERE fingerprint = ? AND status IN ('open','fixing') ORDER BY started_at DESC LIMIT 1",
+                "SELECT * FROM incidents WHERE fingerprint = ? AND status IN ('open','fixing','needs_human') ORDER BY started_at DESC LIMIT 1",
                 (fingerprint,),
             ).fetchone()
         return _incident(row) if row else None

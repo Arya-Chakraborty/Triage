@@ -81,6 +81,15 @@ class DashboardStaticTests(unittest.TestCase):
         for path in API_PATHS:
             self.assertIn(path, blob)
 
+    def test_live_path_does_not_hide_api_with_fixtures(self):
+        js = (STATIC / "app.js").read_text(encoding="utf-8")
+        self.assertIn("api.probe()", js)
+        live = js.split("async function loadLive", 1)[1].split(
+            "async function wrap", 1
+        )[0]
+        self.assertNotIn("applyFixtures()", live)
+        self.assertIn('qs.get("mock") === "1"', js)
+
     def test_views_do_not_fetch(self):
         for path in (STATIC / "js" / "views").glob("*.js"):
             text = path.read_text(encoding="utf-8")

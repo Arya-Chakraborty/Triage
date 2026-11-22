@@ -83,7 +83,7 @@ async def run_watch(root: Path | None = None) -> None:
         mailer=mailer,
         bus=bus,
         reports_dir=cfg.reports_dir,
-        email_to=cfg.alerts.email,
+        email_to=cfg.alerts.email if cfg.alerts.smtp.host else "",
         dashboard_url=cfg.dashboard_url,
     )
 
