@@ -1,0 +1,33 @@
+dashboard:
+  host: 127.0.0.1
+  port: 8787
+model: gemini-2.5-flash
+watch:
+  logs:
+    - path: ./logs/app.log
+      name: app
+  health:
+    - name: local
+      url: http://127.0.0.1:8000/health
+      interval: 15
+  terminals: true
+ship:
+  ingest_url: http://127.0.0.1:8787/ingest
+  docker_containers: []
+assets: []
+alerts:
+  email: ""
+  smtp:
+    host: ""
+    port: 587
+    user: ""
+agent:
+  max_rounds: 12
+  max_incidents_open: 3
+  auto_fix: true
+  allow_shell: true
+  allow_git_commit: false
+  sandbox_root: .
+  token_budget: 100000
+  verify_after_seconds: 15
+  recurrence_cooldown_seconds: 3600

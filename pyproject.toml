@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "triage"
+version = "0.1.0"
+description = "Project-local incident-management control plane"
+requires-python = ">=3.11"
+dependencies = [
+    "google-genai",
+    "fastapi",
+    "uvicorn[standard]",
+    "httpx",
+    "pyyaml",
+]
+
+[project.optional-dependencies]
+dev = ["pytest"]
+
+[project.scripts]
+triage = "triage.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+triage = ["web/static/**"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
