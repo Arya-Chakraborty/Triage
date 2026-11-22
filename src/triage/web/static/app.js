@@ -185,7 +185,28 @@ function onSse(type, payload) {
     store.patch({ events: { items: [payload, ...s.events.items].slice(0, 100), total: (s.events.total || 0) + 1 } });
   } else if (type === "incident") {
     store.patch({ incidents: store.upsert(s.incidents, payload) });
-    if (s.incident && s.incident.id === payload.id) store.patch({ incident: { ...s.incident, ...payload } });
+    if (s.incident && s.incident.id === payload.id) {
+      const { events, actions, report_path, ...rest } = payload;
+      store.patch({
+        incident: {
+          ...s.incident,
+          ...rest,
+          events: events || s.incident.events,
+          actions: actions || s.incident.actions,
+          report_path: report_path ?? s.incident.report_path,
+        },
+      });
+    }
+  } else if (type === "action") {
+    if (s.incident && payload && s.incident.id === payload.incident_id) {
+      const actions = s.incident.actions || [];
+      if (!actions.some((a) => a.id === payload.id)) {
+        store.patch({ incident: { ...s.incident, actions: [...actions, payload] } });
+      }
+    }
+  } else if (type === "agent") {
+    const overview = s.overview || {};
+    store.patch({ overview: { ...overview, agent_busy: Boolean(payload && payload.busy) } });
   } else if (type === "asset") {
     store.patch({ assets: store.upsert(s.assets, payload) });
   } else if (type === "terminal") {

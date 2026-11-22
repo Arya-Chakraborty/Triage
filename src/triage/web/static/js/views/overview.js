@@ -18,11 +18,11 @@ function inner(state) {
   const ticker = state.ticker.length ? state.ticker : (state.events.items || []).slice(0, 12);
   return `
     <div class="stats" aria-label="Status">
-      ${stat("Open incidents", o.open_incidents, o.open_incidents ? "down" : "ok")}
-      ${stat("Assets up", o.assets_up, "ok")}
-      ${stat("Assets down", o.assets_down, o.assets_down ? "down" : "")}
-      ${stat("Events / min", o.event_rate_per_min, "")}
-      ${stat("Agent", o.agent_busy ? "busy" : "idle", o.agent_busy ? "busy" : "ok")}
+      ${stat("Open incidents", o.open_incidents, o.open_incidents ? "down" : "ok", "#/incidents")}
+      ${stat("Assets up", o.assets_up, "ok", "#/systems")}
+      ${stat("Assets down", o.assets_down, o.assets_down ? "down" : "", "#/systems")}
+      ${stat("Events / min", o.event_rate_per_min, "", "#/events")}
+      ${stat("Agent", o.agent_busy ? "busy" : "idle", o.agent_busy ? "busy" : "ok", "#/incidents")}
     </div>
     <div class="sec-h">Assets</div>
     ${
@@ -46,8 +46,10 @@ function inner(state) {
     </div>`;
 }
 
-function stat(lbl, val, cls) {
-  return `<div class="stat ${cls}"><span class="lbl">${esc(lbl)}</span><span class="val">${esc(val)}</span></div>`;
+function stat(lbl, val, cls, href) {
+  return `<button type="button" class="stat ${cls}" data-act="goto" data-href="${esc(href)}">
+    <span class="lbl">${esc(lbl)}</span><span class="val">${esc(val)}</span>
+  </button>`;
 }
 
 function box(a) {

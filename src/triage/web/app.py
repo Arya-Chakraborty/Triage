@@ -179,12 +179,19 @@ def create_app(
         try:
             candidate.relative_to(STATIC_DIR)
         except ValueError:
-            return FileResponse(index)
+            return _static_file(index)
         if candidate.is_file():
-            return FileResponse(candidate)
-        return FileResponse(index)
+            return _static_file(candidate)
+        return _static_file(index)
 
     return app
+
+
+def _static_file(path: Path) -> FileResponse:
+    response = FileResponse(path)
+    if path.suffix in {".js", ".css", ".html"}:
+        response.headers["Cache-Control"] = "no-store"
+    return response
 
 
 def _rate(store: Store, clock) -> float:

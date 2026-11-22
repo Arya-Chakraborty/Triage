@@ -40,6 +40,8 @@ class AgentLoop:
         auto_fix: bool,
         on_escalate: Callable[..., Any],
         on_resolved: Callable[..., Any] | None = None,
+        on_action: Callable[..., Any] | None = None,
+        on_incident: Callable[..., Any] | None = None,
     ) -> None:
         self.llm = llm
         self.store = store
@@ -55,6 +57,8 @@ class AgentLoop:
         self.auto_fix = auto_fix
         self.on_escalate = on_escalate
         self.on_resolved = on_resolved
+        self.on_action = on_action
+        self.on_incident = on_incident
 
     async def handle(self, incident_id: str) -> None:
         incident = self.store.get_incident(incident_id)
@@ -71,6 +75,7 @@ class AgentLoop:
             return
 
         self.store.update_incident(incident_id, status="fixing")
+        self._emit_incident(incident_id)
         events = self.store.events_for_fingerprint(incident.fingerprint, limit=30)
         prompt = _brief(incident, events)
         contents: list[dict[str, Any]] = [{"role": "user", "text": redact(prompt)}]
@@ -102,18 +107,14 @@ class AgentLoop:
                 return
 
             tokens += response.tokens_used
-            self.store.insert_action(
-                Action(
-                    id=uuid.uuid4().hex,
-                    incident_id=incident_id,
-                    ts=self.clock.now(),
-                    role="model",
-                    name="generate",
-                    input={"round": round_index},
-                    output=redact(response.text)
-                    or json.dumps([c.name for c in response.function_calls]),
-                    ok=True,
-                )
+            self._record(
+                incident_id,
+                role="model",
+                name="generate",
+                input={"round": round_index},
+                output=redact(response.text)
+                or json.dumps([c.name for c in response.function_calls]),
+                ok=True,
             )
 
             if response.function_calls:
@@ -138,17 +139,13 @@ class AgentLoop:
                         result = await asyncio.to_thread(
                             tool.execute, ctx, call.args or {}
                         )
-                    self.store.insert_action(
-                        Action(
-                            id=uuid.uuid4().hex,
-                            incident_id=incident_id,
-                            ts=self.clock.now(),
-                            role="tool",
-                            name=call.name,
-                            input=call.args or {},
-                            output=redact(result.output)[:8000],
-                            ok=result.ok,
-                        )
+                    self._record(
+                        incident_id,
+                        role="tool",
+                        name=call.name,
+                        input=call.args or {},
+                        output=redact(result.output)[:8000],
+                        ok=result.ok,
                     )
                     contents.append(
                         {
@@ -203,27 +200,54 @@ class AgentLoop:
         down = [a for a in assets if a.status == "down"]
         return bool(live) and not down if assets else True
 
+    def _record(
+        self,
+        incident_id: str,
+        *,
+        role: str,
+        name: str,
+        input: dict[str, Any],
+        output: str,
+        ok: bool,
+    ) -> None:
+        action = Action(
+            id=uuid.uuid4().hex,
+            incident_id=incident_id,
+            ts=self.clock.now(),
+            role=role,
+            name=name,
+            input=input,
+            output=output,
+            ok=ok,
+        )
+        self.store.insert_action(action)
+        if self.on_action:
+            self.on_action(action)
+
+    def _emit_incident(self, incident_id: str) -> None:
+        incident = self.store.get_incident(incident_id)
+        if incident and self.on_incident:
+            self.on_incident(incident)
+
     async def _finish(self, incident_id: str, decision: Decision, reason: str) -> None:
-        self.store.insert_action(
-            Action(
-                id=uuid.uuid4().hex,
-                incident_id=incident_id,
-                ts=self.clock.now(),
-                role="system",
-                name=decision.value,
-                input={},
-                output=reason,
-                ok=decision != Decision.NEEDS_HUMAN,
-            )
+        self._record(
+            incident_id,
+            role="system",
+            name=decision.value,
+            input={},
+            output=reason,
+            ok=decision != Decision.NEEDS_HUMAN,
         )
         if decision == Decision.RESOLVED:
             self.store.update_incident(
                 incident_id, status="resolved", resolved_at=self.clock.now()
             )
+            self._emit_incident(incident_id)
             if self.on_resolved:
                 self.on_resolved(incident_id, reason)
             return
         self.on_escalate(incident_id, reason)
+        self._emit_incident(incident_id)
 
 
 def _brief(incident, events) -> str:

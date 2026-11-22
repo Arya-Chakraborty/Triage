@@ -80,6 +80,13 @@ class DashboardStaticTests(unittest.TestCase):
         blob = _read_all()
         for path in API_PATHS:
             self.assertIn(path, blob)
+        overview = (STATIC / "js" / "views" / "overview.js").read_text()
+        self.assertIn('"#/incidents"', overview)
+        self.assertIn("data-href=", overview)
+        self.assertIn('stat("Agent"', overview)
+        sse = (STATIC / "js" / "sse.js").read_text()
+        self.assertIn('"action"', sse)
+        self.assertIn('"agent"', sse)
 
     def test_live_path_does_not_hide_api_with_fixtures(self):
         js = (STATIC / "app.js").read_text(encoding="utf-8")

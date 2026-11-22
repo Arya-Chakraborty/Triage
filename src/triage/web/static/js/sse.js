@@ -1,6 +1,6 @@
 import { streamUrl } from "./api.js";
 
-const TYPES = ["event", "incident", "asset", "terminal"];
+const TYPES = ["event", "incident", "asset", "terminal", "action", "agent"];
 
 export function connect({ onOpen, onError, onEvent }) {
   let delay = 1000;

@@ -53,6 +53,10 @@ def test_dashboard_health_and_api(tmp_path):
         assert name in home.text, name
     css = client.get("/styles.css")
     assert css.status_code == 200
+    assert css.headers.get("cache-control") == "no-store"
+    js = client.get("/app.js")
+    assert js.status_code == 200
+    assert js.headers.get("cache-control") == "no-store"
     spa = client.get("/not-a-route")
     assert spa.status_code == 200
     assert "Triage" in spa.text

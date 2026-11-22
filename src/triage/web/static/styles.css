@@ -185,6 +185,17 @@ a { color: var(--text); }
   border-right: 1px solid var(--border);
   background: var(--panel);
 }
+button.stat {
+  display: block;
+  width: 100%;
+  margin: 0;
+  text-align: left;
+  cursor: pointer;
+  border-radius: 0;
+  border: 0;
+  border-right: 1px solid var(--border);
+}
+button.stat:hover { background: var(--tick); }
 .stat:last-child { border-right: 0; }
 .stat .lbl {
   color: var(--muted);

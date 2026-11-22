@@ -87,17 +87,30 @@ async def run_watch(root: Path | None = None) -> None:
         dashboard_url=cfg.dashboard_url,
     )
 
+    def publish(topic: str, payload: dict) -> None:
+        try:
+            asyncio.get_running_loop().create_task(bus.publish(topic, payload))
+        except RuntimeError:
+            pass
+
     def on_escalate(incident_id: str, reason: str) -> None:
         escalator.escalate(incident_id, reason)
         incident = store.get_incident(incident_id)
         if incident is None:
             return
-        try:
-            asyncio.get_running_loop().create_task(
-                bus.publish("incident", incident.to_api())
-            )
-        except RuntimeError:
-            pass
+        publish("incident", incident.to_api())
+
+    def on_action(action) -> None:
+        payload = action.to_api()
+        payload["incident_id"] = action.incident_id
+        publish("action", payload)
+
+    def on_incident(incident) -> None:
+        publish("incident", incident.to_api())
+
+    def set_busy(busy: bool) -> None:
+        state.set_busy(busy)
+        publish("agent", {"busy": busy})
 
     policy = AgentPolicy(
         max_rounds=cfg.agent.max_rounds,
@@ -118,10 +131,10 @@ async def run_watch(root: Path | None = None) -> None:
         verify_after_seconds=cfg.agent.verify_after_seconds,
         auto_fix=cfg.agent.auto_fix,
         on_escalate=on_escalate,
+        on_action=on_action,
+        on_incident=on_incident,
     )
-    scheduler = AgentScheduler(
-        loop, cfg.agent.max_incidents_open, set_busy=state.set_busy
-    )
+    scheduler = AgentScheduler(loop, cfg.agent.max_incidents_open, set_busy=set_busy)
     ingest = IngestService(
         store,
         clock,

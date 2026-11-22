@@ -12,7 +12,7 @@ export function paintChrome(state, route) {
     inc.textContent = `${n} open`;
   }
   document.querySelectorAll(".nav a").forEach((a) => {
-    const page = (a.getAttribute("href") || "").replace("#/", "");
+    const page = (a.getAttribute("href") || "").replace("#/", "").split("/")[0];
     const on = page === (route.page || "overview");
     a.setAttribute("aria-selected", on ? "true" : "false");
     if (on) a.setAttribute("aria-current", "page");
