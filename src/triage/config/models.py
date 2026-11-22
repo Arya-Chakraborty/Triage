@@ -111,7 +111,7 @@ class AgentConfig:
 @dataclass
 class Config:
     dashboard: DashboardConfig = field(default_factory=DashboardConfig)
-    model: str = "gemini-3.5-flash"
+    model: str = "gemini-3.5-flash-lite"
     watch: WatchConfig = field(default_factory=WatchConfig)
     ship: ShipConfig = field(default_factory=ShipConfig)
     assets: list[dict[str, Any]] = field(default_factory=list)
@@ -246,7 +246,7 @@ def config_from_dict(data: dict[str, Any], project_root: Path) -> Config:
     assets = data.get("assets") or []
     if not isinstance(assets, list):
         raise ValueError("assets must be a list")
-    model = data.get("model") or "gemini-3.5-flash"
+    model = data.get("model") or "gemini-3.5-flash-lite"
     if not isinstance(model, str):
         raise ValueError("model must be a string")
     return Config(

@@ -140,7 +140,7 @@ def run_init(root: Path | None = None) -> Path:
     yaml_path = root / CONFIG_NAME
     doc = {
         "dashboard": {"host": host, "port": int(port or 8787)},
-        "model": "gemini-3.5-flash",
+        "model": "gemini-3.5-flash-lite",
         "watch": {"logs": [], "health": [], "terminals": True},
         "ship": {"ingest_url": f"http://{host}:{port}/ingest", "docker_containers": []},
         "assets": [],

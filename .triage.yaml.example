@@ -4,7 +4,7 @@
 dashboard:
   host: 127.0.0.1
   port: 8787
-model: gemini-3.5-flash
+model: gemini-3.5-flash-lite
 watch:
   logs:
     - path: ./logs/app.log
