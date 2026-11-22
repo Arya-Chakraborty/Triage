@@ -19,9 +19,9 @@ export function panelBody(state, key, empty, emptyMsg, html) {
   return typeof html === "function" ? html() : html;
 }
 
-export function pageHead(title, sub = "") {
+export function pageHead(title, sub = "", extra = "") {
   const code = title.replace(/[^A-Za-z]/g, "").slice(0, 3).toUpperCase() || "TRG";
-  return `<div class="head"><span class="bt-code">${esc(code)}</span><h1>${esc(title)}</h1><div class="sub">${esc(sub)}</div></div>`;
+  return `<div class="head"><span class="bt-code">${esc(code)}</span><h1>${esc(title)}</h1><div class="sub">${esc(sub)}</div>${extra}</div>`;
 }
 
 export function disconnectStrip(state) {

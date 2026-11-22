@@ -61,6 +61,20 @@ export function telemetry() {
   return get("/api/telemetry");
 }
 
+export async function post(path, body = {}) {
+  const res = await fetch(withToken(path), {
+    method: "POST",
+    headers: { ...headers(), "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) throw new Error(`${res.status} ${res.statusText}`.trim());
+  return res.json();
+}
+
+export function reinitiate() {
+  return post("/api/agent/reinitiate");
+}
+
 export async function probe() {
   try {
     await overview();

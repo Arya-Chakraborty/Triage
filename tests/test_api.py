@@ -137,6 +137,41 @@ def test_needs_human_duplicate_does_not_open_second(tmp_path):
     assert items[0]["id"] == first["id"]
 
 
+def test_reinitiate_reopens_incidents(tmp_path):
+    queued: list[str] = []
+    store = SqliteStore(tmp_path / "reinit.db")
+    clock = FrozenClock()
+    bus = MemoryEventBus()
+    state = AppState()
+    ingest = IngestService(store, clock, bus, state=state)
+    app = create_app(
+        store=store,
+        bus=bus,
+        ingest=ingest,
+        token="test-token",
+        state=state,
+        clock=clock,
+        requeue=queued.append,
+    )
+    client = TestClient(app)
+    auth = {"Authorization": "Bearer test-token"}
+    body = {
+        "events": [{"level": "error", "source": "app", "message": "ValueError: boom"}]
+    }
+    assert client.post("/ingest", json=body, headers=auth).status_code == 200
+    first = client.get("/api/incidents").json()["items"][0]
+    store.update_incident(
+        first["id"], status="needs_human", escalate_reason="rounds exhausted"
+    )
+    r = client.post("/api/agent/reinitiate")
+    assert r.status_code == 200
+    assert r.json()["queued"] == 1
+    assert queued == [first["id"]]
+    inc = store.get_incident(first["id"])
+    assert inc.status == "open"
+    assert inc.escalate_reason == ""
+
+
 def test_live_uvicorn_endpoints(tmp_path):
     import uvicorn
 

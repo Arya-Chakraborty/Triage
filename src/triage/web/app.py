@@ -4,6 +4,7 @@ import json
 from contextlib import asynccontextmanager
 from datetime import timedelta
 from pathlib import Path
+from collections.abc import Callable
 from typing import Any
 
 from fastapi import FastAPI, HTTPException, Query
@@ -27,6 +28,7 @@ def create_app(
     token: str,
     state: AppState,
     clock,
+    requeue: Callable[[str], None] | None = None,
 ) -> FastAPI:
     @asynccontextmanager
     async def lifespan(app: FastAPI):
@@ -145,6 +147,18 @@ def create_app(
             ],
             "event_rate_per_min": _rate(store, clock),
         }
+
+    @app.post("/api/agent/reinitiate")
+    def reinitiate() -> dict[str, Any]:
+        queued: list[str] = []
+        for inc in store.list_incidents():
+            if inc.status not in {"open", "fixing", "needs_human", "failed"}:
+                continue
+            store.update_incident(inc.id, status="open", escalate_reason="")
+            if requeue is not None:
+                requeue(inc.id)
+            queued.append(inc.id)
+        return {"ok": True, "queued": len(queued), "ids": queued}
 
     @app.get("/api/stream")
     async def stream() -> StreamingResponse:

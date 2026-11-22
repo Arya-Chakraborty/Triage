@@ -220,11 +220,22 @@ a { color: var(--text); text-decoration: none; }
 }
 
 .head .sub {
-  margin-left: auto;
   color: var(--muted);
   font-family: "IBM Plex Mono", ui-monospace, Menlo, monospace;
   font-size: 11px;
 }
+
+.head .reinit {
+  margin-left: auto;
+  background: var(--accent);
+  color: var(--key);
+  border-color: var(--accent);
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+}
+.head .reinit:hover { color: var(--key); filter: brightness(1.08); }
+.head .reinit:disabled { opacity: 0.55; cursor: default; }
 
 .stats {
   display: grid;
@@ -295,6 +306,86 @@ button.stat:hover { background: var(--tick); }
 .quotes .px.down { color: var(--danger); }
 .quotes .px.ok { color: var(--ok); }
 .quotes .chg { color: var(--muted); font-size: 10px; }
+
+.pipeboard {
+  position: relative;
+  height: 148px;
+  border-bottom: 1px solid var(--border);
+  background: var(--panel);
+  flex-shrink: 0;
+}
+.pipeboard svg {
+  display: block;
+  width: 100%;
+  height: 148px;
+  overflow: visible;
+}
+.pipeboard .pipe-fx {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.pipeboard .pipe {
+  fill: none;
+  stroke: var(--border);
+  stroke-width: 1.2;
+}
+.pipeboard .pad {
+  fill: var(--raised);
+  stroke: var(--border);
+  stroke-width: 1;
+}
+.pipeboard .lbl {
+  fill: var(--muted);
+  font-size: 9px;
+  font-family: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  letter-spacing: 0.08em;
+}
+.pipeboard .val {
+  fill: var(--accent);
+  font-size: 10px;
+  font-family: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  font-variant-numeric: tabular-nums;
+}
+.pipeboard .hub {
+  fill: var(--bg);
+  stroke: var(--accent);
+  stroke-width: 1.2;
+}
+.pipeboard .hub-t {
+  fill: var(--accent);
+  font-size: 12px;
+  font-weight: 600;
+  font-family: "IBM Plex Sans Condensed", sans-serif;
+  letter-spacing: 0.16em;
+  text-anchor: middle;
+}
+.pipeboard .hub-ring {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1.2;
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.pipeboard.ping:not(.busy) .hub-ring.r1 {
+  animation: hubping 620ms cubic-bezier(0.19, 1, 0.22, 1);
+}
+.pipeboard.busy .hub-ring {
+  animation: hubping 1.25s cubic-bezier(0.19, 1, 0.22, 1) infinite;
+}
+.pipeboard.busy .hub-ring.r2 {
+  animation-delay: 0.62s;
+}
+@keyframes hubping {
+  from { opacity: 0.85; transform: scale(1); }
+  to { opacity: 0; transform: scale(1.75); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pipeboard.ping .hub-ring,
+  .pipeboard.busy .hub-ring { animation: none; }
+}
 
 .split {
   display: grid;
@@ -610,5 +701,7 @@ tr.selected { background: color-mix(in srgb, var(--accent) 16%, var(--bg)); }
   .nav { overflow-x: auto; }
   .nav a { white-space: nowrap; }
   .session { display: none; }
+  .pipeboard { height: 120px; }
+  .pipeboard svg { height: 120px; }
   body { overflow: auto; }
 }

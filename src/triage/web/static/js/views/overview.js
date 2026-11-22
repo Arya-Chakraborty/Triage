@@ -13,7 +13,8 @@ export function renderOverview(state) {
   const sub = o
     ? `${(o.assets_up || 0) + (o.assets_down || 0)} assets · ${o.event_rate_per_min}/min · agent ${o.agent_busy ? "busy" : "idle"}`
     : "sources to desk";
-  return `<div class="page">${disconnectStrip(state)}${pageHead("Overview", sub)}${body}</div>`;
+  const extra = `<button type="button" class="reinit" data-act="reinitiate">Re-initiate</button>`;
+  return `<div class="page">${disconnectStrip(state)}${pageHead("Overview", sub, extra)}${body}</div>`;
 }
 
 function inner(state) {
@@ -30,6 +31,7 @@ function inner(state) {
       <div class="q"><div class="sym">AGENT</div><span class="px ${o.agent_busy ? "" : "ok"}">${o.agent_busy ? "BUSY" : "IDLE"}</span><span class="chg">gemini loop</span></div>
       <div class="q"><div class="sym">DESK</div><span class="px ${o.open_incidents ? "down" : "ok"}">${esc(o.open_incidents)}</span><span class="chg">open incidents</span></div>
     </div>
+    <div id="pipe-slot"></div>
     <div class="stats" aria-label="Status">
       ${stat("Open incidents", o.open_incidents, o.open_incidents ? "down" : "ok", "#/incidents", "needs human or fixing")}
       ${stat("Assets up", o.assets_up, "ok", "#/systems", `${total} total`)}

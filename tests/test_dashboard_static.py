@@ -21,6 +21,7 @@ API_PATHS = (
     "/api/terminals",
     "/api/telemetry",
     "/api/stream",
+    "/api/agent/reinitiate",
 )
 
 
@@ -46,6 +47,7 @@ class DashboardStaticTests(unittest.TestCase):
             "js/flow.js",
             "js/hud.js",
             "js/scene3d.js",
+            "js/pipeline.js",
             "js/views/overview.js",
             "js/views/systems.js",
             "js/views/terminals.js",
@@ -69,6 +71,15 @@ class DashboardStaticTests(unittest.TestCase):
         self.assertIn("flowbar", html)
         self.assertIn("js/flow.js", (STATIC / "app.js").read_text(encoding="utf-8"))
         self.assertIn("js/hud.js", (STATIC / "app.js").read_text(encoding="utf-8"))
+        self.assertIn("js/pipeline.js", (STATIC / "app.js").read_text(encoding="utf-8"))
+        self.assertIn(
+            "pipe-slot",
+            (STATIC / "js" / "views" / "overview.js").read_text(encoding="utf-8"),
+        )
+        self.assertIn(
+            "reinitiate",
+            (STATIC / "js" / "views" / "overview.js").read_text(encoding="utf-8"),
+        )
         self.assertIn("three", (STATIC / "index.html").read_text(encoding="utf-8"))
         self.assertIn(
             'from "three"', (STATIC / "js" / "scene3d.js").read_text(encoding="utf-8")

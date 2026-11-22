@@ -280,6 +280,7 @@ class AgentScheduler:
         self._sem = asyncio.Semaphore(max(1, max_open))
         self._queue: asyncio.Queue[str] = asyncio.Queue()
         self._seen: set[str] = set()
+        self._again: set[str] = set()
         self._inflight = 0
         self._set_busy = set_busy
 
@@ -288,6 +289,12 @@ class AgentScheduler:
             return
         self._seen.add(incident_id)
         self._queue.put_nowait(incident_id)
+
+    def requeue(self, incident_id: str) -> None:
+        if incident_id in self._seen:
+            self._again.add(incident_id)
+            return
+        self.enqueue(incident_id)
 
     async def run(self) -> None:
         while True:
@@ -307,5 +314,8 @@ class AgentScheduler:
             self._inflight -= 1
             self._seen.discard(incident_id)
             self._sem.release()
+            if incident_id in self._again:
+                self._again.discard(incident_id)
+                self.enqueue(incident_id)
             if self._set_busy and self._inflight == 0:
                 self._set_busy(False)

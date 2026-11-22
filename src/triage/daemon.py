@@ -161,6 +161,7 @@ async def run_watch(root: Path | None = None) -> None:
         token=secrets.ingest_token,
         state=state,
         clock=clock,
+        requeue=scheduler.requeue,
     )
     server = uvicorn.Server(
         uvicorn.Config(

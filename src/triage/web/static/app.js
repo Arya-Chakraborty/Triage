@@ -5,6 +5,7 @@ import * as store from "./js/state.js";
 import { initTheme } from "./js/theme.js";
 import { mount as mountFlow, pulse as pulseFlow } from "./js/flow.js";
 import { mount as mountHud, pulse as pulseHud } from "./js/hud.js";
+import { mount as mountPipe, pulse as pulsePipe, ping as pingPipe, sync as syncPipe } from "./js/pipeline.js";
 import { paintChrome } from "./js/views/shell.js";
 import { renderOverview } from "./js/views/overview.js";
 import { renderSystems } from "./js/views/systems.js";
@@ -52,16 +53,33 @@ function filtersFrom(route) {
   };
 }
 
+let pipeEl = null;
+
 function render() {
   const state = store.get();
   const route = parseRoute();
   paintChrome(state, route);
   const fn = views[route.page] || views.overview;
   const view = document.getElementById("view");
+  const keep = document.getElementById("pipeboard");
+  if (keep) {
+    pipeEl = keep;
+    keep.remove();
+  }
   try {
     view.innerHTML = fn(state, route);
   } catch (err) {
     view.innerHTML = `<div class="state err" role="alert">${String(err)}</div>`;
+  }
+  const slot = document.getElementById("pipe-slot");
+  if (slot) {
+    if (!pipeEl) {
+      pipeEl = document.createElement("div");
+      pipeEl.id = "pipeboard";
+      mountPipe(pipeEl);
+    }
+    slot.replaceWith(pipeEl);
+    syncPipe(state);
   }
   document.querySelectorAll("pre[data-term]").forEach((el) => {
     if (el.dataset.paused === "1") return;
@@ -188,6 +206,7 @@ async function wrap(key, fn, apply) {
 function onSse(type, payload) {
   pulseFlow(type);
   pulseHud(type);
+  pulsePipe(type);
   const s = store.get();
   if (type === "event") {
     store.pushTicker(payload);
@@ -229,8 +248,8 @@ function startMockTicker() {
   let i = 0;
   setInterval(() => {
     store.pushTicker(all[i % all.length]);
-    pulseFlow("event");
     pulseHud("event");
+    pulsePipe("event");
     i += 1;
   }, 1800);
 }
@@ -255,6 +274,20 @@ function onClick(e) {
   const act = el.dataset.act;
   if (act === "goto") {
     location.hash = el.dataset.href;
+  } else if (act === "reinitiate") {
+    pingPipe();
+    pulsePipe("agent");
+    if (store.get().mock) return;
+    if (pipeEl) pipeEl.classList.add("busy");
+    el.disabled = true;
+    api
+      .reinitiate()
+      .then((r) => {
+        if (!r.queued && pipeEl) pipeEl.classList.remove("busy");
+      })
+      .finally(() => {
+        el.disabled = false;
+      });
   } else if (act === "pause") {
     const id = el.dataset.id;
     const paused = { ...store.get().paused, [id]: !store.get().paused[id] };
