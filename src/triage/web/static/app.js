@@ -3,6 +3,7 @@ import * as api from "./js/api.js";
 import { connect as connectSse } from "./js/sse.js";
 import * as store from "./js/state.js";
 import { initTheme } from "./js/theme.js";
+import { mount as mountFlow, pulse as pulseFlow } from "./js/flow.js";
 import { paintChrome } from "./js/views/shell.js";
 import { renderOverview } from "./js/views/overview.js";
 import { renderSystems } from "./js/views/systems.js";
@@ -184,6 +185,7 @@ async function wrap(key, fn, apply) {
 }
 
 function onSse(type, payload) {
+  pulseFlow(type);
   const s = store.get();
   if (type === "event") {
     store.pushTicker(payload);
@@ -300,6 +302,8 @@ function onKey(e) {
 
 async function boot() {
   initTheme();
+  const bar = document.getElementById("flowbar");
+  if (bar) mountFlow(bar);
   document.addEventListener("click", onClick);
   document.addEventListener("submit", onSubmit);
   document.addEventListener("keydown", onKey);

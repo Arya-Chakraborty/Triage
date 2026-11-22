@@ -9,7 +9,7 @@ export function renderOverview(state) {
     "No overview data.",
     () => inner(state)
   );
-  return `<div class="page">${disconnectStrip(state)}${pageHead("Overview", "assets · incidents · rate")}${body}</div>`;
+  return `<div class="page">${disconnectStrip(state)}${pageHead("Overview", "sources to desk")}${body}</div>`;
 }
 
 function inner(state) {
@@ -17,6 +17,7 @@ function inner(state) {
   const assets = state.assets || [];
   const ticker = state.ticker.length ? state.ticker : (state.events.items || []).slice(0, 12);
   return `
+    ${board(state)}
     <div class="stats" aria-label="Status">
       ${stat("Open incidents", o.open_incidents, o.open_incidents ? "down" : "ok", "#/incidents")}
       ${stat("Assets up", o.assets_up, "ok", "#/systems")}
@@ -44,6 +45,20 @@ function inner(state) {
         }
       </section>
     </div>`;
+}
+
+function board(state) {
+  const o = state.overview;
+  const live = state.connected ? " live" : "";
+  return `<div class="manifold${live}" aria-hidden="true">
+    <div class="station"><span class="k">Sources</span><span class="v">${esc((o.assets_up || 0) + (o.assets_down || 0))}</span></div>
+    <div class="pipe"></div>
+    <div class="station"><span class="k">Ingest</span><span class="v">${esc(o.event_rate_per_min)}</span></div>
+    <div class="pipe"></div>
+    <div class="station"><span class="k">Agent</span><span class="v">${o.agent_busy ? "busy" : "idle"}</span></div>
+    <div class="pipe"></div>
+    <div class="station"><span class="k">Desk</span><span class="v">${esc(o.open_incidents)}</span></div>
+  </div>`;
 }
 
 function stat(lbl, val, cls, href) {

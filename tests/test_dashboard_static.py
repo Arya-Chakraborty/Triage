@@ -43,6 +43,7 @@ class DashboardStaticTests(unittest.TestCase):
             "js/sse.js",
             "js/state.js",
             "js/theme.js",
+            "js/flow.js",
             "js/views/overview.js",
             "js/views/systems.js",
             "js/views/terminals.js",
@@ -63,15 +64,17 @@ class DashboardStaticTests(unittest.TestCase):
         self.assertIn("theme-toggle", html)
         self.assertIn("prefers-color-scheme", html)
         self.assertIn("triage-theme", html)
+        self.assertIn("flowbar", html)
+        self.assertIn("js/flow.js", (STATIC / "app.js").read_text(encoding="utf-8"))
 
     def test_dark_and_light_css_variables(self):
         css = (STATIC / "styles.css").read_text(encoding="utf-8")
         self.assertIn('[data-theme="light"]', css)
         self.assertIn('[data-theme="dark"]', css)
-        self.assertIn("#12141a", css)
-        self.assertIn("#f3f1ea", css)
-        self.assertIn("#1a1d24", css)
-        self.assertIn("#fffdf8", css)
+        self.assertIn("#111216", css)
+        self.assertIn("#f2f0ea", css)
+        self.assertIn("#191b21", css)
+        self.assertIn("#fbfaf6", css)
         self.assertIn("--accent", css)
         self.assertIn("--danger", css)
         self.assertNotIn("linear-gradient", css)

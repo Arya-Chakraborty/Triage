@@ -4,6 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Triage</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./styles.css">
   <script>
     (function () {
@@ -19,11 +22,12 @@
 <body>
   <a class="skip" href="#view">Skip to content</a>
   <header class="top">
-    <div class="brand">Triage</div>
+    <div class="brand"><span class="mark" aria-hidden="true"></span>Triage</div>
     <div id="conn" class="conn" data-state="off" role="status" aria-live="polite">Disconnected</div>
     <a class="inc-count" id="inc-count" href="#/incidents" aria-label="Open incidents">0 open</a>
     <button type="button" id="theme-toggle" aria-label="Toggle color theme">Theme</button>
   </header>
+  <div class="flowbar" id="flowbar" aria-hidden="true"></div>
   <div class="shell">
     <nav class="nav" role="tablist" aria-label="Panels">
       <a href="#/overview" role="tab" aria-controls="view">Overview</a>
