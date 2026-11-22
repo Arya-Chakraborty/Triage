@@ -87,6 +87,12 @@ class DashboardStaticTests(unittest.TestCase):
         sse = (STATIC / "js" / "sse.js").read_text()
         self.assertIn('"action"', sse)
         self.assertIn('"agent"', sse)
+        common = (STATIC / "js" / "views" / "common.js").read_text()
+        self.assertIn("state.loading[key] && empty", common)
+        events = (STATIC / "js" / "views" / "events.js").read_text()
+        self.assertIn('"warning"', events)
+        telemetry = (STATIC / "js" / "views" / "telemetry.js").read_text()
+        self.assertIn("Array.isArray(t.heartbeats)", telemetry)
 
     def test_live_path_does_not_hide_api_with_fixtures(self):
         js = (STATIC / "app.js").read_text(encoding="utf-8")

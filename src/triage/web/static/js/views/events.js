@@ -27,7 +27,7 @@ function hasFilters(f) {
 }
 
 function filters(f) {
-  const levels = ["", "debug", "info", "warn", "error", "fatal"];
+  const levels = ["", "debug", "info", "warning", "error", "fatal"];
   const opts = levels.map((l) => `<option value="${l}" ${f.level === l ? "selected" : ""}>${l || "any"}</option>`).join("");
   return `<form class="filters" data-act="filters">
     <label>level <select name="level">${opts}</select></label>

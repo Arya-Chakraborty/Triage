@@ -13,8 +13,10 @@ export function emptyBox(msg) {
 }
 
 export function panelBody(state, key, empty, emptyMsg, html) {
-  if (state.loading[key]) return loadingBox();
-  if (state.error[key]) return errorBox(state.error[key]);
+  // Keep existing rows on screen while a refetch is in flight; blanking
+  // the panel on every hashchange made clicks look like a no-op.
+  if (state.loading[key] && empty) return loadingBox();
+  if (state.error[key] && empty) return errorBox(state.error[key]);
   if (empty) return emptyBox(emptyMsg);
   return typeof html === "function" ? html() : html;
 }

@@ -86,7 +86,7 @@ function applyFixtures() {
 function pageEvents(all, f) {
   // ponytail: fingerprint/source/q filtered on the current set; add server q= when API grows it
   const filtered = all.filter((e) => {
-    if (f.level && e.level !== f.level) return false;
+    if (f.level && !_sameLevel(e.level, f.level)) return false;
     if (f.asset && e.asset_id !== f.asset) return false;
     if (f.source && !(e.source || "").toLowerCase().includes(f.source.toLowerCase())) return false;
     if (f.fingerprint && !(e.fingerprint || "").toLowerCase().includes(f.fingerprint.toLowerCase())) return false;
@@ -99,6 +99,11 @@ function pageEvents(all, f) {
   const offset = f.offset || 0;
   const limit = f.limit || 25;
   return { items: filtered.slice(offset, offset + limit), total: filtered.length };
+}
+
+function _sameLevel(got, want) {
+  const n = (l) => (l === "warn" ? "warning" : l);
+  return n(got) === n(want);
 }
 
 function detailIncident(id) {
@@ -320,7 +325,10 @@ async function boot() {
 
   store.subscribe(render);
   window.addEventListener("hashchange", () => loadRoute());
-  if (!location.hash) location.hash = "#/overview";
+  if (!location.hash) {
+    location.hash = "#/overview";
+    return;
+  }
   await loadRoute();
 }
 
