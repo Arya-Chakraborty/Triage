@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import signal
 import socket
 import subprocess
 import threading
@@ -79,11 +80,14 @@ def run_ship(root: Path | None = None) -> None:
         )
     for t in threads:
         t.start()
-    try:
-        while True:
-            time.sleep(1)
-    except KeyboardInterrupt:
+
+    def _stop(*_args) -> None:
         stop.set()
+
+    signal.signal(signal.SIGINT, _stop)
+    signal.signal(signal.SIGTERM, _stop)
+    while not stop.is_set():
+        time.sleep(1)
 
 
 def _docker_logs(container: str, host: str, send, stop) -> None:

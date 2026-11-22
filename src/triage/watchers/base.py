@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import inspect
 import re
 from abc import ABC, abstractmethod
@@ -17,6 +18,16 @@ class Watcher(ABC):
 
     @abstractmethod
     async def stop(self) -> None: ...
+
+
+async def cancel_task(task: asyncio.Task | None) -> None:
+    if task is None:
+        return
+    task.cancel()
+    try:
+        await task
+    except asyncio.CancelledError:
+        pass
 
 
 async def emit_event(emit, payload: dict[str, Any]) -> None:

@@ -6,14 +6,16 @@ from pathlib import Path
 from typing import Any
 
 from fastapi import FastAPI, HTTPException, Query
-from fastapi.responses import HTMLResponse, StreamingResponse
-from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse, HTMLResponse, StreamingResponse
 
+from triage import __version__
 from triage.ingest.routes import ingest_router
 from triage.ingest.service import IngestService
 from triage.ports.event_bus import EventBus
 from triage.ports.store import Store
 from triage.runtime import AppState
+
+STATIC_DIR = Path(__file__).resolve().parent / "static"
 
 
 def create_app(
@@ -27,6 +29,10 @@ def create_app(
 ) -> FastAPI:
     app = FastAPI(title="Triage", docs_url=None, redoc_url=None)
     app.include_router(ingest_router(ingest, token))
+
+    @app.get("/api/health")
+    def health() -> dict[str, Any]:
+        return {"ok": True, "version": __version__}
 
     @app.get("/api/overview")
     def overview() -> dict[str, Any]:
@@ -145,14 +151,28 @@ def create_app(
 
         return StreamingResponse(gen(), media_type="text/event-stream")
 
-    static_dir = Path(__file__).resolve().parent / "static"
-    if static_dir.is_dir() and any(static_dir.iterdir()):
-        app.mount("/", StaticFiles(directory=static_dir, html=True), name="ui")
-    else:
-
-        @app.get("/", response_class=HTMLResponse)
-        def stub() -> str:
-            return "Triage is running"
+    # SPA: files under static/, else index.html. /api/* and /ingest stay JSON.
+    @app.get("/{full_path:path}")
+    def spa(full_path: str):
+        path = "/" + full_path
+        if (
+            path == "/api"
+            or path.startswith("/api/")
+            or path == "/ingest"
+            or path.startswith("/ingest/")
+        ):
+            raise HTTPException(404, "not found")
+        index = STATIC_DIR / "index.html"
+        if not STATIC_DIR.is_dir() or not index.is_file():
+            return HTMLResponse("Triage is running")
+        candidate = (STATIC_DIR / full_path).resolve() if full_path else index
+        try:
+            candidate.relative_to(STATIC_DIR)
+        except ValueError:
+            return FileResponse(index)
+        if candidate.is_file():
+            return FileResponse(candidate)
+        return FileResponse(index)
 
     return app
 

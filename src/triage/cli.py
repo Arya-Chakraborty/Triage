@@ -7,6 +7,7 @@ from pathlib import Path
 
 import httpx
 
+from triage import __version__
 from triage.adapters.pty_runner import run_pty
 from triage.config.loader import load_config, load_secrets, run_init
 from triage.ingest.client import post_ingest, spool_append
@@ -17,10 +18,13 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         prog="triage", description="Project-local incident control plane"
     )
+    parser.add_argument(
+        "--version", action="version", version=f"%(prog)s {__version__}"
+    )
     sub = parser.add_subparsers(dest="cmd", required=True)
 
     sub.add_parser("init", help="Write .triage.yaml and ~/.triage/secrets")
-    sub.add_parser("watch", help="Run watchers, ingest, agent, and dashboard API")
+    sub.add_parser("watch", help="Run watchers, ingest, agent, and dashboard")
 
     run_p = sub.add_parser("run", help="PTY-wrap a process and stream events")
     run_p.add_argument("--name", required=True)
@@ -37,26 +41,30 @@ def main(argv: list[str] | None = None) -> int:
     ev.add_argument("--env", default="")
 
     args = parser.parse_args(argv)
-    if args.cmd == "init":
-        path = run_init()
-        print(f"wrote {path}")
-        return 0
-    if args.cmd == "watch":
-        from triage.daemon import run_watch_sync
+    try:
+        if args.cmd == "init":
+            path = run_init()
+            print(f"wrote {path}")
+            return 0
+        if args.cmd == "watch":
+            from triage.daemon import run_watch_sync
 
-        run_watch_sync()
-        return 0
-    if args.cmd == "run":
-        return _run(args)
-    if args.cmd == "ship":
-        from triage.collector.shipper import run_ship
+            run_watch_sync()
+            return 0
+        if args.cmd == "run":
+            return _run(args)
+        if args.cmd == "ship":
+            from triage.collector.shipper import run_ship
 
-        run_ship()
-        return 0
-    if args.cmd == "status":
-        return _status()
-    if args.cmd == "event":
-        return _event(args)
+            run_ship()
+            return 0
+        if args.cmd == "status":
+            return _status()
+        if args.cmd == "event":
+            return _event(args)
+    except ValueError as exc:
+        print(exc, file=sys.stderr)
+        return 2
     parser.error("unknown command")
     return 2
 

@@ -28,9 +28,24 @@ def _client(tmp_path: Path, token: str = "test-token") -> TestClient:
     return TestClient(app)
 
 
-def test_stub_and_frozen_endpoints(tmp_path):
+def test_dashboard_health_and_api(tmp_path):
     client = _client(tmp_path)
-    assert client.get("/").text == "Triage is running"
+    home = client.get("/")
+    assert home.status_code == 200
+    assert "Triage" in home.text
+    assert "Overview" in home.text
+    css = client.get("/styles.css")
+    assert css.status_code == 200
+    spa = client.get("/not-a-route")
+    assert spa.status_code == 200
+    assert "Triage" in spa.text
+    health = client.get("/api/health")
+    assert health.status_code == 200
+    body = health.json()
+    assert body["ok"] is True
+    assert "version" in body
+    missing = client.get("/api/does-not-exist")
+    assert missing.status_code == 404
     for path in (
         "/api/overview",
         "/api/assets",

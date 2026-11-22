@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any
 
 from triage.config.models import LogWatch
-from triage.watchers.base import Watcher, emit_event, traceback_kind
+from triage.watchers.base import Watcher, cancel_task, emit_event, traceback_kind
 
 Emit = Callable[[dict[str, Any]], None]
 
@@ -28,8 +28,8 @@ class LogTailWatcher(Watcher):
         self._task = asyncio.create_task(self._run(), name="log-tail")
 
     async def stop(self) -> None:
-        if self._task:
-            self._task.cancel()
+        await cancel_task(self._task)
+        self._task = None
 
     async def _run(self) -> None:
         while True:

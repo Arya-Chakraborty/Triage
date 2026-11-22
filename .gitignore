@@ -1,4 +1,8 @@
 .triage/
+.triage.yaml
+secrets
+spool.jsonl
+.env
 __pycache__/
 *.py[cod]
 *.egg-info/
@@ -9,3 +13,4 @@ build/
 .pytest_cache/
 .mypy_cache/
 *.db
+.DS_Store

@@ -1,6 +1,10 @@
 from __future__ import annotations
 
 import asyncio
+import json
+import logging
+import signal
+from datetime import datetime, timezone
 from pathlib import Path
 
 import uvicorn
@@ -23,8 +27,34 @@ from triage.watchers.log_tail import LogTailWatcher
 from triage.watchers.process import ProcessWatcher
 from triage.web.app import create_app
 
+log = logging.getLogger("triage")
+
+
+class _JsonFormatter(logging.Formatter):
+    def format(self, record: logging.LogRecord) -> str:
+        payload = {
+            "ts": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+            "level": record.levelname,
+            "logger": record.name,
+            "msg": record.getMessage(),
+        }
+        if record.exc_info:
+            payload["exc"] = self.formatException(record.exc_info)
+        return json.dumps(payload)
+
+
+def configure_logging() -> None:
+    root = logging.getLogger()
+    if any(isinstance(h.formatter, _JsonFormatter) for h in root.handlers):
+        return
+    handler = logging.StreamHandler()
+    handler.setFormatter(_JsonFormatter())
+    root.handlers = [handler]
+    root.setLevel(logging.INFO)
+
 
 async def run_watch(root: Path | None = None) -> None:
+    configure_logging()
     cfg = load_config(root)
     secrets = load_secrets()
     cfg.project_root.joinpath(".triage").mkdir(exist_ok=True)
@@ -121,17 +151,38 @@ async def run_watch(root: Path | None = None) -> None:
     )
     server = uvicorn.Server(
         uvicorn.Config(
-            app, host=cfg.dashboard.host, port=cfg.dashboard.port, log_level="info"
+            app,
+            host=cfg.dashboard.host,
+            port=cfg.dashboard.port,
+            log_level="info",
+            log_config=None,
         )
     )
+    server.install_signal_handlers = lambda: None
+    loop_ = asyncio.get_running_loop()
+
+    def _stop() -> None:
+        server.should_exit = True
+
+    for sig in (signal.SIGINT, signal.SIGTERM):
+        try:
+            loop_.add_signal_handler(sig, _stop)
+        except NotImplementedError:
+            signal.signal(sig, lambda *_args: _stop())
     scheduler_task = asyncio.create_task(scheduler.run(), name="agent-scheduler")
     for w in watchers:
         await w.start()
-    print(f"triage dashboard {cfg.dashboard_url}")
+    log.info("dashboard %s", cfg.dashboard_url)
     try:
         await server.serve()
     finally:
+        log.info("shutting down")
+        runner.terminate_all()
         scheduler_task.cancel()
+        try:
+            await scheduler_task
+        except asyncio.CancelledError:
+            pass
         for w in watchers:
             await w.stop()
         store.close()

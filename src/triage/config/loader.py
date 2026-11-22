@@ -25,11 +25,17 @@ def load_config(root: Path | None = None) -> Config:
     path = root / CONFIG_NAME
     data: dict = {}
     if path.is_file():
-        loaded = yaml.safe_load(path.read_text()) or {}
+        try:
+            loaded = yaml.safe_load(path.read_text()) or {}
+        except yaml.YAMLError as exc:
+            raise ValueError(f"{path}: invalid YAML ({exc})") from exc
         if not isinstance(loaded, dict):
             raise ValueError(f"{path} must be a mapping")
         data = loaded
-    return config_from_dict(data, root)
+    try:
+        return config_from_dict(data, root)
+    except ValueError as exc:
+        raise ValueError(f"{path}: {exc}") from exc
 
 
 def secrets_path() -> Path:
@@ -43,6 +49,10 @@ def load_secrets() -> Secrets:
     path = secrets_path()
     values: dict[str, str] = {}
     if path.is_file():
+        try:
+            os.chmod(path, 0o600)
+        except OSError:
+            pass
         for line in path.read_text().splitlines():
             line = line.strip()
             if not line or line.startswith("#") or "=" not in line:

@@ -8,7 +8,7 @@ from typing import Any
 import httpx
 
 from triage.config.models import HealthWatch
-from triage.watchers.base import Watcher, emit_event
+from triage.watchers.base import Watcher, cancel_task, emit_event
 
 Emit = Callable[[dict[str, Any]], None]
 
@@ -30,8 +30,8 @@ class HealthWatcher(Watcher):
         self._task = asyncio.create_task(self._run(), name="health")
 
     async def stop(self) -> None:
-        if self._task:
-            self._task.cancel()
+        await cancel_task(self._task)
+        self._task = None
 
     async def _run(self) -> None:
         while True:
