@@ -21,6 +21,12 @@ def _event(**kwargs) -> Event:
     return Event(**base)
 
 
+def test_health_retry_count_does_not_fork_fingerprint():
+    assert fingerprint("health", "api health failed (2x)") == fingerprint(
+        "health", "api health failed (10x)"
+    )
+
+
 def test_strips_timestamps_and_addresses():
     a = "ValueError: failed at 2026-01-02T03:04:05.123Z pid=4412 addr 0x7fffabc"
     b = "ValueError: failed at 2026-11-22T13:00:00Z pid=99 addr 0xdeadbeef"

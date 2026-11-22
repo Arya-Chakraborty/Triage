@@ -2,12 +2,15 @@ from __future__ import annotations
 
 import asyncio
 import json
+import re
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
 from triage.config.models import LogWatch
 from triage.watchers.base import Watcher, cancel_task, emit_event, traceback_kind
+
+_LOG_ERROR = re.compile(r"\b(error|fatal|panic)\b", re.I)
 
 Emit = Callable[[dict[str, Any]], None]
 
@@ -57,7 +60,8 @@ class LogTailWatcher(Watcher):
         for line in buf.splitlines():
             if not line.strip():
                 continue
-            level = "error" if kind or "error" in line.lower() else "info"
+            # "NameError" is not a log-level "error"; require a word boundary.
+            level = "error" if kind or _LOG_ERROR.search(line) else "info"
             await emit_event(
                 self.emit,
                 {

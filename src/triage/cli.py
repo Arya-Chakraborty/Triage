@@ -28,7 +28,8 @@ def main(argv: list[str] | None = None) -> int:
 
     run_p = sub.add_parser("run", help="PTY-wrap a process and stream events")
     run_p.add_argument("--name", required=True)
-    run_p.add_argument("cmd", nargs=argparse.REMAINDER)
+    # dest must not be "cmd" — that would overwrite the subparser name
+    run_p.add_argument("argv", nargs=argparse.REMAINDER)
 
     sub.add_parser("ship", help="Remote collector (heartbeats, logs, docker)")
     sub.add_parser("status", help="Daemon URL, asset health, open incidents")
@@ -79,7 +80,7 @@ def _send(payload: dict) -> None:
 
 
 def _run(args: argparse.Namespace) -> int:
-    argv = list(args.cmd)
+    argv = list(args.argv)
     if argv and argv[0] == "--":
         argv = argv[1:]
     if not argv:

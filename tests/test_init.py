@@ -25,6 +25,20 @@ def test_noninteractive_init(tmp_path: Path, monkeypatch):
     assert loaded.ingest_token == "tok"
 
 
+def test_run_subcommand_not_overwritten_by_remainder(monkeypatch):
+    seen = {}
+
+    def fake_run(args):
+        seen["argv"] = list(args.argv)
+        seen["name"] = args.name
+        return 0
+
+    monkeypatch.setattr("triage.cli._run", fake_run)
+    assert main(["run", "--name", "worker", "--", "python3", "x.py"]) == 0
+    assert seen["name"] == "worker"
+    assert seen["argv"] == ["--", "python3", "x.py"]
+
+
 def test_cli_help_and_init(tmp_path: Path, monkeypatch, capsys):
     with pytest.raises(SystemExit) as exc:
         main(["--help"])

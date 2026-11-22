@@ -15,6 +15,7 @@ _UUID = re.compile(
 _MEM = re.compile(r"\b0x[0-9a-fA-F]+\b")
 _HEX_ID = re.compile(r"\b[0-9a-fA-F]{8,}\b")
 _PID = re.compile(r"\bpid[=: ]?\d+\b", re.I)
+_COUNTER = re.compile(r"\(\d+x\)")
 
 _PY_FRAME = re.compile(r'File "([^"]+)", line (\d+), in (\S+)')
 _NODE_FRAME = re.compile(r"at (\S+) \(([^):]+):(\d+)(?::\d+)?\)")
@@ -32,6 +33,7 @@ def normalize_message(message: str) -> str:
     text = _UUID.sub("<ID>", text)
     text = _MEM.sub("<ADDR>", text)
     text = _PID.sub("<PID>", text)
+    text = _COUNTER.sub("(<N>x)", text)
     text = _HEX_ID.sub("<HEX>", text)
     return re.sub(r"\s+", " ", text).strip()
 
