@@ -4,6 +4,7 @@ import { connect as connectSse } from "./js/sse.js";
 import * as store from "./js/state.js";
 import { initTheme } from "./js/theme.js";
 import { mount as mountFlow, pulse as pulseFlow } from "./js/flow.js";
+import { mount as mountHud, pulse as pulseHud } from "./js/hud.js";
 import { paintChrome } from "./js/views/shell.js";
 import { renderOverview } from "./js/views/overview.js";
 import { renderSystems } from "./js/views/systems.js";
@@ -138,17 +139,17 @@ async function loadLive(route) {
         const extra = { ...f, level: "", asset: "", offset: 0, limit: pack.items.length };
         pack.items = pageEvents(pack.items, extra).items;
         store.patch({ events: pack });
-        if (!store.get().ticker.length) store.patch({ ticker: pack.items.slice(0, 12) });
+        if (!store.get().ticker.length) store.patch({ ticker: pack.items.slice(0, 40) });
       })
     );
   }
-  if (route.page === "incidents") {
+  if (route.page === "overview" || route.page === "incidents") {
     jobs.push(
       wrap("incidents", () => api.incidents(), (raw) => {
         store.patch({ incidents: Array.isArray(raw) ? raw : raw.items || raw.incidents || [] });
       })
     );
-    if (route.id) {
+    if (route.page === "incidents" && route.id) {
       jobs.push(
         wrap("incident", () => api.incident(route.id), (incident) => store.patch({ incident }))
       );
@@ -186,6 +187,7 @@ async function wrap(key, fn, apply) {
 
 function onSse(type, payload) {
   pulseFlow(type);
+  pulseHud(type);
   const s = store.get();
   if (type === "event") {
     store.pushTicker(payload);
@@ -227,8 +229,10 @@ function startMockTicker() {
   let i = 0;
   setInterval(() => {
     store.pushTicker(all[i % all.length]);
+    pulseFlow("event");
+    pulseHud("event");
     i += 1;
-  }, 4000);
+  }, 1800);
 }
 
 async function loadRoute() {
@@ -292,6 +296,21 @@ function writeFilters(f) {
 }
 
 function onKey(e) {
+  if (!e.target.matches("input, select, textarea, [contenteditable]")) {
+    const keys = {
+      F1: "#/overview",
+      F2: "#/systems",
+      F3: "#/terminals",
+      F4: "#/events",
+      F5: "#/incidents",
+      F6: "#/telemetry",
+    };
+    if (keys[e.key]) {
+      e.preventDefault();
+      location.hash = keys[e.key];
+      return;
+    }
+  }
   const row = e.target.closest("tr[data-act=goto]");
   if (!row) return;
   if (e.key === "Enter" || e.key === " ") {
@@ -302,8 +321,9 @@ function onKey(e) {
 
 async function boot() {
   initTheme();
+  mountHud();
   const bar = document.getElementById("flowbar");
-  if (bar) mountFlow(bar);
+  if (bar && !bar.hidden) mountFlow(bar);
   document.addEventListener("click", onClick);
   document.addEventListener("submit", onSubmit);
   document.addEventListener("keydown", onKey);

@@ -6,8 +6,15 @@
   <title>Triage</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./styles.css">
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js"
+    }
+  }
+  </script>
   <script>
     (function () {
       var q = new URLSearchParams(location.search).get("theme");
@@ -22,23 +29,29 @@
 <body>
   <a class="skip" href="#view">Skip to content</a>
   <header class="top">
-    <div class="brand"><span class="mark" aria-hidden="true"></span>Triage</div>
+    <div class="brand">Triage</div>
+    <div class="session">INCIDENT <span>MONITOR</span> · TRG &lt;GO&gt;</div>
     <div id="conn" class="conn" data-state="off" role="status" aria-live="polite">Disconnected</div>
     <a class="inc-count" id="inc-count" href="#/incidents" aria-label="Open incidents">0 open</a>
     <button type="button" id="theme-toggle" aria-label="Toggle color theme">Theme</button>
   </header>
-  <div class="flowbar" id="flowbar" aria-hidden="true"></div>
-  <div class="shell">
-    <nav class="nav" role="tablist" aria-label="Panels">
-      <a href="#/overview" role="tab" aria-controls="view">Overview</a>
-      <a href="#/systems" role="tab" aria-controls="view">Systems</a>
-      <a href="#/terminals" role="tab" aria-controls="view">Terminals</a>
-      <a href="#/events" role="tab" aria-controls="view">Events</a>
-      <a href="#/incidents" role="tab" aria-controls="view">Incidents</a>
-      <a href="#/telemetry" role="tab" aria-controls="view">Telemetry</a>
-    </nav>
-    <main id="view" tabindex="-1" role="tabpanel" aria-label="overview"></main>
-  </div>
+  <nav class="nav" role="tablist" aria-label="Panels">
+    <a href="#/overview" role="tab" aria-controls="view"><kbd>F1</kbd> Overview</a>
+    <a href="#/systems" role="tab" aria-controls="view"><kbd>F2</kbd> Systems</a>
+    <a href="#/terminals" role="tab" aria-controls="view"><kbd>F3</kbd> Terminals</a>
+    <a href="#/events" role="tab" aria-controls="view"><kbd>F4</kbd> Events</a>
+    <a href="#/incidents" role="tab" aria-controls="view"><kbd>F5</kbd> Incidents</a>
+    <a href="#/telemetry" role="tab" aria-controls="view"><kbd>F6</kbd> Telemetry</a>
+  </nav>
+  <div class="flowbar" id="flowbar" hidden></div>
+  <main id="view" tabindex="-1" role="tabpanel" aria-label="overview"></main>
+  <footer class="sb">
+    <span id="sb-feed">FEED —</span>
+    <span id="sb-sse">SSE</span>
+    <span id="sb-agent">AGENT —</span>
+    <span id="sb-ticks">0 msg</span>
+    <span class="clock" id="hud-clock">00:00:00Z</span>
+  </footer>
   <script type="module" src="./app.js"></script>
 </body>
 </html>

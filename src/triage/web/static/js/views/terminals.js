@@ -10,7 +10,8 @@ export function renderTerminals(state) {
     "No terminals.",
     () => terms.map((t) => pane(t, state.paused[t.id])).join("")
   );
-  return `<div class="page">${disconnectStrip(state)}${pageHead("Terminals", `${terms.filter((t) => t.alive).length} alive`)}${body}</div>`;
+  const alive = terms.filter((t) => t.alive).length;
+  return `<div class="page">${disconnectStrip(state)}${pageHead("Terminals", `${alive} alive · ${terms.length - alive} dead · ${terms.length} sessions`)}${body}</div>`;
 }
 
 function pane(t, paused) {

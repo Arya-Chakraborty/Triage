@@ -12,7 +12,9 @@ export function renderSystems(state, route) {
     "No assets.",
     () => table(assets, id) + detail(state, selected)
   );
-  return `<div class="page">${disconnectStrip(state)}${pageHead("Systems", `${assets.length} assets`)}${body}</div>`;
+  const up = assets.filter((a) => a.status === "up").length;
+  const down = assets.filter((a) => a.status === "down").length;
+  return `<div class="page">${disconnectStrip(state)}${pageHead("Systems", `${assets.length} assets · ${up} up · ${down} down`)}${body}</div>`;
 }
 
 function table(assets, id) {

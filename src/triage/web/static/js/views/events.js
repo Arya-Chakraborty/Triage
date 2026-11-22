@@ -11,7 +11,7 @@ export function renderEvents(state) {
   const to = Math.min(f.offset + items.length, total);
   return `<div class="page">
     ${disconnectStrip(state)}
-    ${pageHead("Events", `${total} total`)}
+    ${pageHead("Events", `${total} total · ${from}–${to}`)}
     ${filters(f)}
     ${body}
     <div class="pager">

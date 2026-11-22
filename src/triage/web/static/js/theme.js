@@ -8,6 +8,7 @@ export function applyTheme(theme) {
   const t = theme === "light" ? "light" : "dark";
   document.documentElement.setAttribute("data-theme", t);
   localStorage.setItem(KEY, t);
+  window.dispatchEvent(new CustomEvent("triage-theme", { detail: t }));
   const btn = document.getElementById("theme-toggle");
   if (!btn) return;
   btn.textContent = t === "dark" ? "Light" : "Dark";

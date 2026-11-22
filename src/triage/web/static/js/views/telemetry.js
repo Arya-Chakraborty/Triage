@@ -11,7 +11,9 @@ export function renderTelemetry(state) {
   const t = state.telemetry;
   const n = heartbeatCount(t);
   const body = panelBody(state, "telemetry", !t, "No telemetry.", () => inner(t, n));
-  return `<div class="page">${disconnectStrip(state)}${pageHead("Telemetry", t ? `${n} heartbeats` : "")}${body}</div>`;
+  const fail = t ? (t.health || []).filter((h) => !h.ok).length : 0;
+  const sub = t ? `${n} heartbeats · ${t.event_rate_per_min || 0}/min · ${fail} failing probes` : "";
+  return `<div class="page">${disconnectStrip(state)}${pageHead("Telemetry", sub)}${body}</div>`;
 }
 
 function inner(t, beatCount) {

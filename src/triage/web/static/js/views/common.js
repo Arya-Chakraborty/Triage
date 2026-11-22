@@ -13,8 +13,6 @@ export function emptyBox(msg) {
 }
 
 export function panelBody(state, key, empty, emptyMsg, html) {
-  // Keep existing rows on screen while a refetch is in flight; blanking
-  // the panel on every hashchange made clicks look like a no-op.
   if (state.loading[key] && empty) return loadingBox();
   if (state.error[key] && empty) return errorBox(state.error[key]);
   if (empty) return emptyBox(emptyMsg);
@@ -22,7 +20,8 @@ export function panelBody(state, key, empty, emptyMsg, html) {
 }
 
 export function pageHead(title, sub = "") {
-  return `<div class="head"><h1>${esc(title)}</h1><div class="sub">${esc(sub)}</div></div>`;
+  const code = title.replace(/[^A-Za-z]/g, "").slice(0, 3).toUpperCase() || "TRG";
+  return `<div class="head"><span class="bt-code">${esc(code)}</span><h1>${esc(title)}</h1><div class="sub">${esc(sub)}</div></div>`;
 }
 
 export function disconnectStrip(state) {

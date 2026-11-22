@@ -18,9 +18,10 @@ function listCol(list, id) {
   const items = list.map((inc) => {
     const on = inc.id === id ? ` aria-current="page"` : "";
     return `<a class="inc-item" href="#/incidents/${esc(inc.id)}"${on}>
-      <div>${esc(inc.title)}</div>
-      <div class="muted">${esc(inc.severity)} · ${esc(inc.status)}</div>
-      <div class="mono muted">${esc(inc.fingerprint)}</div>
+      <span class="sev sev-${esc(inc.severity)}">${esc(inc.severity)}</span>
+      <span class="title">${esc(inc.title)}</span>
+      <span class="st">${esc(inc.status)}</span>
+      <span class="fp">${esc(inc.fingerprint)} · ${esc(fmtTs(inc.started_at))}</span>
     </a>`;
   });
   return `<div class="inc-list">${items.join("")}</div>`;
